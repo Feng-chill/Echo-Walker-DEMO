@@ -66,12 +66,17 @@ body {
   cursor: crosshair;
 }
 
-.fullscreen-btn {
+.top-right-controls {
   position: absolute;
   top: 14px;
   right: 14px;
   z-index: 120;
-  display: none;
+  display: flex;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.top-btn {
   pointer-events: auto;
   padding: 10px 12px;
   border-radius: 12px;
@@ -83,7 +88,7 @@ body {
   touch-action: manipulation;
 }
 
-.fullscreen-btn:active {
+.top-btn:active {
   border-color: rgba(255, 213, 107, 0.82);
   box-shadow: 0 0 24px rgba(255, 213, 107, 0.32);
   color: #fff6c8;

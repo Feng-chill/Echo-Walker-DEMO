@@ -1,6 +1,7 @@
 const canvas = document.getElementById("gameCanvas");
 const errorPanel = document.getElementById("errorPanel");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
+const backToMenuBtn = document.getElementById("backToMenuBtn");
 const startupOverlay = document.getElementById("startupOverlay");
 const startFullscreenBtn = document.getElementById("startFullscreenBtn");
 const btnEnterGame = document.getElementById("btnEnterGame");
@@ -109,6 +110,15 @@ if (fullscreenBtn) {
   });
 }
 
+if (backToMenuBtn) {
+  backToMenuBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    audio.unlock();
+    game.state = "menu";
+  });
+}
+
 if (startFullscreenBtn && startupOverlay) {
   startFullscreenBtn.addEventListener("click", (event) => {
     event.preventDefault();
@@ -199,12 +209,14 @@ let previousGameState = null;
 function syncMenuState() {
   if (game.state !== previousGameState) {
     if (game.state === "menu") {
+      if (backToMenuBtn) backToMenuBtn.hidden = true;
       // Re-show menu when game returns to menu
       if (startupOverlay.style.display === "none") {
         modeSelectionMenu.classList.remove("hidden");
         levelSelectionMenu.classList.add("hidden");
       }
     } else {
+      if (backToMenuBtn) backToMenuBtn.hidden = false;
       modeSelectionMenu.classList.add("hidden");
       levelSelectionMenu.classList.add("hidden");
     }

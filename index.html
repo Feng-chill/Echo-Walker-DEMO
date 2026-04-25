@@ -67,7 +67,10 @@
 
     <main class="game-shell" aria-label="回响行者游戏">
       <canvas id="gameCanvas"></canvas>
-      <button id="fullscreenBtn" class="fullscreen-btn" type="button">进入全屏</button>
+      <div class="top-right-controls">
+        <button id="backToMenuBtn" class="top-btn" type="button" hidden>返回主界面</button>
+        <button id="fullscreenBtn" class="top-btn" type="button" hidden>进入全屏</button>
+      </div>
       <div id="errorPanel" class="error-panel" hidden>
         回响节奏发生错误，请刷新后重试。
       </div>
