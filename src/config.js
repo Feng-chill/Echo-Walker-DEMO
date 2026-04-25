@@ -15,7 +15,7 @@ const CONFIG = {
     y: 330,
     width: 30,
     height: 46,
-    speed: 460,
+    speed: 360,
     jumpForce: -820,
     maxHealth: 220,
     attackDamage: 28,
