@@ -4,7 +4,7 @@ const CONFIG = {
   world: {
     width: 4100,
     height: 820,
-    gravity: 1700,
+    gravity: 2800,
     floorDeathY: 1020
   },
   camera: {
@@ -15,8 +15,8 @@ const CONFIG = {
     y: 330,
     width: 30,
     height: 46,
-    speed: 330,
-    jumpForce: -640,
+    speed: 460,
+    jumpForce: -820,
     maxHealth: 220,
     attackDamage: 28,
     parryHealRatio: 0.05,

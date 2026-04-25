@@ -147,7 +147,7 @@ class Player extends Entity {
       }
     }
 
-    const accel = this.isGrounded ? 2800 : 1700;
+    const accel = this.isGrounded ? 15000 : 8000;
     this.vx = approach(this.vx, targetVx, accel * dt);
   }
 
