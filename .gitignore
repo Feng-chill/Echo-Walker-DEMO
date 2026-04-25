@@ -1,0 +1,41 @@
+# Vercel
+.vercel/
+vercel.json
+.vercelignore
+
+# Markdown files (Ignore all except doc.md)
+*.md
+!doc.md
+!docs/
+
+# Ignore markdown files inside docs if they shouldn't be uploaded either
+# The requirement says "屏蔽所有md（除了doc.md这一个）" (Block all md except doc.md)
+# So *.md handles the root, but we should ensure nested md files are also ignored.
+**/*.md
+!doc.md
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>回响行者 | Minimalist</title>
+  <link rel="stylesheet" href="./styles/style.css" />
+</head>
+<body>
+  <!-- 第一幕：游戏启动页 (BEM 规范) -->
+  <div id="startupOverlay" class="startup-overlay">
+    <div class="startup-overlay__content">
+      <h1 class="startup-overlay__title">回响行者</h1>
+      <p id="orientationHint" class="startup-overlay__hint">为了获得最佳体验，请反转到横屏</p>
+      <div class="startup-overlay__actions">
+        <button id="startFullscreenBtn" class="btn btn--outline">进入全屏</button>
+      </div>
+      <div class="startup-overlay__footer">
+        <p>戴上耳机以获得最佳体验</p>
+        <p>噪声本无形，直到你回应它</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameViewport" class="game-viewport">
+    <!-- 第二幕：模式选择菜单 (BEM 规范) -->
+    <div id="modeSelectionMenu" class="mode-menu hidden">
+      <h2 class="mode-menu__title">模式选择</h2>
+      <div class="mode-menu__grid">
+        <button class="mode-card" data-mode="tutorial">
+          <h3 class="mode-card__title">新手教程</h3>
+          <p class="mode-card__desc">基础操作教学，理解回响与弹反机制</p>
+        </button>
+        <button class="mode-card" data-mode="classic">
+          <h3 class="mode-card__title">经典模式</h3>
+          <p class="mode-card__desc">进入核心横版弹反关卡挑战</p>
+        </button>
+        <button class="mode-card" data-mode="fun">
+          <h3 class="mode-card__title">娱乐模式</h3>
+          <p class="mode-card__desc">开发中：无尽生存与靶场训练玩法</p>
+        </button>
+      </div>
+    </div>
+
+    <div id="levelSelectionMenu" class="mode-menu hidden">
+      <h2 class="mode-menu__title">经典模式</h2>
+      <div class="mode-menu__grid mode-menu__grid--levels">
+        <button class="mode-card level-card" data-level="silent-corridor">
+          <h3 class="mode-card__title">第一关：静默回廊</h3>
+          <p class="mode-card__desc">Rule 01 / 不要用噪声回应噪声</p>
+        </button>
+        <button class="mode-card level-card" data-level="construction">
+          <h3 class="mode-card__title">第二关：红色信号</h3>
+          <p class="mode-card__desc">前方正在施工</p>
+        </button>
+        <button class="mode-card level-card" data-level="construction">
+          <h3 class="mode-card__title">第三关：破碎节奏</h3>
+          <p class="mode-card__desc">前方正在施工</p>
+        </button>
+        <button class="mode-card level-card" data-level="construction">
+          <h3 class="mode-card__title">第四关：守卫之门</h3>
+          <p class="mode-card__desc">前方正在施工</p>
+        </button>
+      </div>
+      <button id="btnBackToModes" class="btn btn--outline mode-menu__back">返回模式选择</button>
+    </div>
+
+    <main class="game-shell" aria-label="回响行者游戏">
+      <canvas id="gameCanvas"></canvas>
+      <button id="fullscreenBtn" class="fullscreen-btn" type="button">进入全屏</button>
+      <div id="errorPanel" class="error-panel" hidden>
+        回响节奏发生错误，请刷新后重试。
+      </div>
+      <div class="touch-controls" aria-label="Touch controls">
+        <div class="joystick-zone" id="joystickZone">
+          <div class="joystick-base" id="joystickBase">
+            <div class="joystick-knob" id="joystickKnob"></div>
+          </div>
+        </div>
+        <div class="touch-cluster right">
+          <button class="btn-weapon" data-action="weapon" aria-label="切换武器">切换</button>
+          <button class="btn-parry" data-action="parry" aria-label="弹反">回响</button>
+          <button class="btn-attack" data-action="attack" aria-label="攻击">攻击</button>
+          <button class="btn-jump" data-action="jump" aria-label="跳跃">跳跃</button>
+          <button class="btn-ultimate" data-action="ultimate" aria-label="共鸣爆发">无双</button>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="./src/i18n.js"></script>
+  <script src="./src/config.js"></script>
+  <script src="./src/Collision.js"></script>
+  <script src="./src/Entity.js"></script>
+  <script src="./src/AudioManager.js"></script>
+  <script src="./src/Input.js"></script>
+  <script src="./src/Player.js"></script>
+  <script src="./src/Enemy.js"></script>
+  <script src="./src/EffectSystem.js"></script>
+  <script src="./src/CombatSystem.js"></script>
+  <script src="./src/HUD.js"></script>
+  <script src="./src/Game.js"></script>
+  <script src="./src/main.js"></script>
+</body>
+</html>
