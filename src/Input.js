@@ -18,10 +18,10 @@ class Input {
       ["ArrowUp", "up"],
       ["KeyS", "down"],
       ["ArrowDown", "down"],
-      ["Space", "jump"],
+      ["KeyK", "jump"],
       ["KeyJ", "attack"],
       ["KeyL", "parry"],
-      ["KeyI", "ultimate"],
+      ["Space", "ultimate"],
       ["KeyP", "weapon"],
       ["Enter", "start"],
       ["KeyR", "restart"]
