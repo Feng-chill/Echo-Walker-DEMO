@@ -49,12 +49,12 @@ const CONFIG = {
     attackRecovery: 0.17,
     attackBoxWidth: 58,
     attackBoxHeight: 34,
-    parryPerfectWindow: 0.34,
+    parryPerfectWindow: 0.3,
     parryNormalWindow: 0.72,
     shieldHoldThreshold: 0.12,
     shieldMeleeDamageScale: 0.22,
     shieldRangedRage: 24,
-    parryRecovery: 0.05,
+    parryRecovery: 0.035,
     normalParryRage: 28,
     perfectParryRage: 44,
     attackRage: 6,
@@ -305,7 +305,7 @@ const CONFIG = {
         required: true,
         spawnEnemies: [
           { x: 1060, y: 470, type: "striker" },
-          { x: 1190, y: 470, type: "striker" },
+          { x: 1190, y: 470, type: "skirmisher" },
           { x: 1420, y: 300, type: "caster" }
         ]
       }
@@ -319,7 +319,7 @@ const CONFIG = {
         enemies: [
           { x: 350, y: 470, type: "striker" },
           { x: 655, y: 328, type: "caster" },
-          { x: 1285, y: 470, type: "striker" },
+          { x: 1265, y: 470, type: "skirmisher" },
           { x: 1465, y: 470, type: "caster" }
         ]
       }

@@ -25,7 +25,46 @@ class Enemy extends Entity {
       this.width = 32;
       this.height = 42;
       this.speed = CONFIG.enemy.speed * 0.82;
+    } else if (this.type === "skirmisher") {
+      this.maxHealth = 78;
+      this.health = this.maxHealth;
+      this.width = 30;
+      this.height = 46;
+      this.speed = CONFIG.enemy.speed * 1.2;
     }
+  }
+
+  getTiming() {
+    if (this.type === "skirmisher") {
+      return {
+        startup: 0.42,
+        active: 0.12,
+        recovery: 0.22,
+        activeSpeed: 310,
+        range: 82,
+        damage: 12
+      };
+    }
+
+    return {
+      startup: CONFIG.enemy.startupTime,
+      active: CONFIG.enemy.activeTime,
+      recovery: CONFIG.enemy.recoveryTime,
+      activeSpeed: 220,
+      range: CONFIG.enemy.attackRange,
+      damage: CONFIG.enemy.attackDamage
+    };
+  }
+
+  startAttackStartup(multiplier = 1) {
+    const timing = this.getTiming();
+    const jitter = this.type === "skirmisher"
+      ? 0.88 + Math.random() * 0.24
+      : 0.7 + Math.random() * 0.6;
+    this.state = "attack_startup";
+    this.timer = timing.startup * jitter * multiplier;
+    this.attackResolved = false;
+    this.vx = 0;
   }
 
   update(dt, player, platforms, world) {
@@ -56,10 +95,9 @@ class Enemy extends Entity {
       case "idle":
         if (absDistance <= CONFIG.enemy.detectRange && reachable) {
           if (this.tutorialId === "master" && this.type === "striker") {
-            this.state = absDistance <= CONFIG.enemy.attackRange ? "attack_startup" : "idle";
+            this.state = absDistance <= this.getTiming().range ? "attack_startup" : "idle";
             if (this.state === "attack_startup") {
-              this.timer = CONFIG.enemy.startupTime * (0.7 + Math.random() * 0.6);
-              this.attackResolved = false;
+              this.startAttackStartup();
             }
           } else {
             this.state = "chase";
@@ -84,16 +122,11 @@ class Enemy extends Entity {
           }
         } else if (this.tutorialId === "master") {
           this.vx = 0;
-          if (absDistance <= CONFIG.enemy.attackRange) {
-            this.state = "attack_startup";
-            this.timer = CONFIG.enemy.startupTime * (0.7 + Math.random() * 0.6);
-            this.attackResolved = false;
+          if (absDistance <= this.getTiming().range) {
+            this.startAttackStartup();
           }
-        } else if (absDistance <= CONFIG.enemy.attackRange) {
-          this.state = "attack_startup";
-          this.timer = CONFIG.enemy.startupTime * (0.7 + Math.random() * 0.6); // Randomize startup
-          this.attackResolved = false;
-          this.vx = 0;
+        } else if (absDistance <= this.getTiming().range) {
+          this.startAttackStartup();
         } else if (!reachable) {
           this.safePatrol(platforms);
         } else {
@@ -105,12 +138,14 @@ class Enemy extends Entity {
         this.timer -= dt;
         if (this.timer <= 0) {
           this.state = "attack_active";
-          this.timer = CONFIG.enemy.activeTime * (0.8 + Math.random() * 0.4);
+          const timing = this.getTiming();
+          const jitter = this.type === "skirmisher" ? 0.9 + Math.random() * 0.18 : 0.8 + Math.random() * 0.4;
+          this.timer = timing.active * jitter;
           this.attackResolved = false;
         }
         break;
       case "attack_active":
-        this.vx = this.type === "caster" ? 0 : this.getSafeVelocity(this.facing, platforms, 220);
+        this.vx = this.type === "caster" ? 0 : this.getSafeVelocity(this.facing, platforms, this.getTiming().activeSpeed);
         if (this.type === "caster" && !this.attackResolved) {
           this.pendingShot = true;
           this.attackResolved = true;
@@ -118,7 +153,9 @@ class Enemy extends Entity {
         this.timer -= dt;
         if (this.timer <= 0 || this.attackResolved) {
           this.state = "attack_recovery";
-          this.timer = CONFIG.enemy.recoveryTime * (0.8 + Math.random() * 0.4);
+          const timing = this.getTiming();
+          const jitter = this.type === "skirmisher" ? 0.9 + Math.random() * 0.2 : 0.8 + Math.random() * 0.4;
+          this.timer = timing.recovery * jitter;
           this.vx = 0;
         }
         break;
@@ -257,14 +294,18 @@ class Enemy extends Entity {
     if (this.type === "caster") {
       return { x: this.x, y: this.y, width: 0, height: 0, active: false };
     }
-    const width = 62;
+    const width = this.type === "skirmisher" ? 54 : 62;
     return {
       x: this.facing > 0 ? this.x + this.width - 4 : this.x - width + 4,
       y: this.y + 13,
       width,
-      height: 28,
+      height: this.type === "skirmisher" ? 24 : 28,
       active: this.state === "attack_active" && !this.attackResolved
     };
+  }
+
+  getAttackDamage() {
+    return this.getTiming().damage;
   }
 
   consumeShot() {
@@ -296,7 +337,7 @@ class Enemy extends Entity {
 
   parried() {
     this.state = "attack_recovery";
-    this.timer = CONFIG.enemy.recoveryTime * 0.85;
+    this.timer = this.getTiming().recovery * 0.85;
     this.attackResolved = true;
     this.vx = -this.facing * 180;
     this.hitFlash = 0.10;
@@ -353,16 +394,23 @@ class Enemy extends Entity {
     }
 
     ctx.beginPath();
-    ctx.moveTo(8, 4);
-    ctx.lineTo(30, 10);
-    ctx.lineTo(27, 46);
-    ctx.lineTo(4, 40);
+    if (this.type === "skirmisher") {
+      ctx.moveTo(12, 2);
+      ctx.lineTo(30, 14);
+      ctx.lineTo(22, 45);
+      ctx.lineTo(3, 36);
+    } else {
+      ctx.moveTo(8, 4);
+      ctx.lineTo(30, 10);
+      ctx.lineTo(27, 46);
+      ctx.lineTo(4, 40);
+    }
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = isStunned ? p.white : "#210714";
-    ctx.fillRect(13, 19, 9, 8);
+    ctx.fillRect(this.type === "skirmisher" ? 12 : 13, this.type === "skirmisher" ? 18 : 19, 9, 8);
 
     this.renderMeleeArm(ctx, p, isStartup, isActive);
 
@@ -397,21 +445,22 @@ class Enemy extends Entity {
 
   renderMeleeArm(ctx, p, isStartup, isActive) {
     const shoulder = { x: this.facing > 0 ? 22 : 10, y: 24 };
-    const startupProgress = isStartup ? clamp(1 - this.timer / CONFIG.enemy.startupTime, 0, 1) : 0;
-    const activeProgress = isActive ? clamp(1 - this.timer / CONFIG.enemy.activeTime, 0, 1) : 0;
+    const timing = this.getTiming();
+    const startupProgress = isStartup ? clamp(1 - this.timer / timing.startup, 0, 1) : 0;
+    const activeProgress = isActive ? clamp(1 - this.timer / timing.active, 0, 1) : 0;
     let angle = 0.28;
 
-    if (isStartup) angle = 0.08 - startupProgress * 1.12;
-    if (isActive) angle = -1.04 + activeProgress * 1.76;
-    if (this.state === "attack_recovery") angle = 0.72;
+    if (isStartup) angle = this.type === "skirmisher" ? 0.18 - startupProgress * 1.36 : 0.08 - startupProgress * 1.12;
+    if (isActive) angle = this.type === "skirmisher" ? -1.18 + activeProgress * 2.05 : -1.04 + activeProgress * 1.76;
+    if (this.state === "attack_recovery") angle = this.type === "skirmisher" ? 0.58 : 0.72;
 
     const hand = {
       x: shoulder.x + Math.cos(angle) * this.facing * 15,
       y: shoulder.y + Math.sin(angle) * 15
     };
     const blade = {
-      x: hand.x + Math.cos(angle) * this.facing * 22,
-      y: hand.y + Math.sin(angle) * 22
+      x: hand.x + Math.cos(angle) * this.facing * (this.type === "skirmisher" ? 27 : 22),
+      y: hand.y + Math.sin(angle) * (this.type === "skirmisher" ? 27 : 22)
     };
     const pommel = {
       x: hand.x - Math.cos(angle) * this.facing * 10,

@@ -447,7 +447,7 @@ class CombatSystem {
       } else if (shieldCatch) {
         this.shieldMelee(player, enemy);
       } else {
-        const damaged = player.takeDamage(CONFIG.enemy.attackDamage, enemy.facing);
+        const damaged = player.takeDamage(enemy.getAttackDamage?.() ?? CONFIG.enemy.attackDamage, enemy.facing);
         enemy.attackResolved = true;
         if (damaged) {
           this.stats.damageTaken += 1;
@@ -461,7 +461,7 @@ class CombatSystem {
   }
 
   shieldMelee(player, enemy) {
-    const reducedDamage = CONFIG.enemy.attackDamage * CONFIG.combat.shieldMeleeDamageScale;
+    const reducedDamage = (enemy.getAttackDamage?.() ?? CONFIG.enemy.attackDamage) * CONFIG.combat.shieldMeleeDamageScale;
     const damaged = player.takeDamage(reducedDamage, enemy.facing);
     enemy.attackResolved = true;
     player.state = "shield";
