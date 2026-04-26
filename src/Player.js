@@ -159,7 +159,12 @@ class Player extends Entity {
     }
     if (this.state === "attack" || this.state === "parry" || this.state === "shield" || this.state === "parry_recovery" || this.state === "hurt") return;
     if (!this.isGrounded) {
-      this.state = this.vy < 0 ? "jump" : "fall";
+      if (this.wallDir !== 0 && this.vy > 0) {
+        this.state = "wall_slide";
+        this.vy = Math.min(this.vy, 220); // 滑墙减速，限制最大下落速度
+      } else {
+        this.state = this.vy < 0 ? "jump" : "fall";
+      }
     } else if (input.isDown("down")) {
       this.state = "crouch";
     } else if (input.isDown("left") || input.isDown("right")) {
@@ -199,6 +204,12 @@ class Player extends Entity {
     if (this.isGrounded) {
       this.vy = this.jumpForce;
       this.isGrounded = false;
+    } else if (this.wallDir !== 0) {
+      // 蹬墙跳
+      this.vy = this.jumpForce * 0.95;
+      this.vx = -this.wallDir * this.speed * 2.2;
+      this.facing = -this.wallDir;
+      this.canDoubleJump = true; // 刷新二段跳
     } else if (this.canDoubleJump) {
       this.vy = this.jumpForce * 0.88;
       this.canDoubleJump = false;

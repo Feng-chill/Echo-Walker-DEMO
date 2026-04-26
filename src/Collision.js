@@ -23,6 +23,7 @@ function rectCenter(rect) {
 }
 
 function moveAndCollide(entity, platforms, dt, world) {
+  entity.wallDir = 0; // 0 = none, 1 = right wall, -1 = left wall
   entity.x += entity.vx * dt;
   entity.x = clamp(entity.x, 0, world.width - entity.width);
   resolvePlatformAxis(entity, platforms, "x");
@@ -43,8 +44,10 @@ function resolvePlatformAxis(entity, platforms, axis) {
     if (axis === "x") {
       if (entity.vx > 0) {
         entity.x = platform.x - offsetX - hitbox.width;
+        entity.wallDir = 1; // hit wall on the right
       } else if (entity.vx < 0) {
         entity.x = platform.x + platform.width - offsetX;
+        entity.wallDir = -1; // hit wall on the left
       }
       entity.vx = 0;
       continue;
