@@ -51,6 +51,7 @@ class Player extends Entity {
     if (input.axis.x !== 0 || input.axis.y !== 0) {
       const len = Math.hypot(input.axis.x, input.axis.y);
       this.aimDir = { x: input.axis.x / len, y: input.axis.y / len };
+      // 只有在没有进行上下精确瞄准，或者左右偏移明显时，才改变面朝方向
       if (Math.abs(input.axis.x) > 0.1) {
         this.facing = Math.sign(input.axis.x);
       }

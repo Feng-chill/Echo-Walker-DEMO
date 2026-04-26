@@ -154,26 +154,16 @@ class Input {
       const screenDy = touch.clientY - baseCenter.y;
       const dx = this.isPseudoLandscape() ? screenDy : screenDx;
       const dy = this.isPseudoLandscape() ? -screenDx : screenDy;
-      const horizontalOnly = this.isMobileTouchLayout();
-      const distance = horizontalOnly ? Math.abs(dx) : Math.hypot(dx, dy);
+      const distance = Math.hypot(dx, dy);
       const angle = Math.atan2(dy, dx);
 
-      let knobX = 0;
-      let knobY = 0;
-      if (horizontalOnly) {
-        const deadZone = 10;
-        if (distance > deadZone) {
-          knobX = dx < 0 ? -maxRadius * 0.78 : maxRadius * 0.78;
-        }
-      } else {
-        const radius = Math.min(distance, maxRadius);
-        knobX = Math.cos(angle) * radius;
-        knobY = Math.sin(angle) * radius;
-      }
+      const radius = Math.min(distance, maxRadius);
+      const knobX = Math.cos(angle) * radius;
+      const knobY = Math.sin(angle) * radius;
 
       updateKnob(knobX, knobY);
-      this.touchAxis.x = horizontalOnly ? Math.sign(knobX) : knobX / maxRadius;
-      this.touchAxis.y = horizontalOnly ? 0 : knobY / maxRadius;
+      this.touchAxis.x = knobX / maxRadius;
+      this.touchAxis.y = knobY / maxRadius;
       this.updateCombinedAxis();
     };
 
@@ -215,7 +205,7 @@ class Input {
     if (this.actions.has("down")) ky += 1;
 
     this.axis.x = Math.abs(this.touchAxis.x) > 0.1 ? this.touchAxis.x : kx;
-    this.axis.y = this.isMobileTouchLayout() ? ky : (Math.abs(this.touchAxis.y) > 0.1 ? this.touchAxis.y : ky);
+    this.axis.y = Math.abs(this.touchAxis.y) > 0.1 ? this.touchAxis.y : ky;
   }
 
   bindCanvasStart() {
