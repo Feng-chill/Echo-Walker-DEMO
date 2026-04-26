@@ -65,6 +65,15 @@
       <button id="btnBackToModes" class="btn btn--outline mode-menu__back">返回模式选择</button>
     </div>
 
+    <!-- 教学关卡前置对话 -->
+    <div id="tutorialIntroOverlay" class="dialogue-overlay hidden">
+      <div class="dialogue-box">
+        <div id="dialogueSpeaker" class="dialogue-speaker"></div>
+        <div id="dialogueText" class="dialogue-text"></div>
+        <div class="dialogue-hint">点击/回车/空格 继续</div>
+      </div>
+    </div>
+
     <main class="game-shell" aria-label="回响行者游戏">
       <canvas id="gameCanvas"></canvas>
       <div class="top-right-controls">

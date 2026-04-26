@@ -194,8 +194,8 @@ body {
 .btn-weapon { right: 95px; bottom: 105px; width: 56px; height: 56px; font-size: 12px; }
 .btn-ultimate { right: 155px; bottom: 70px; width: 52px; height: 52px; font-size: 12px; border-color: rgba(255, 213, 107, 0.6); }
 
-/* BEM: Startup Overlay (Minimalist) */
-.startup-overlay {
+/* BEM: Startup Overlay & Dialogue Overlay */
+.startup-overlay, .dialogue-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -203,7 +203,70 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.dialogue-overlay {
+  z-index: 900;
+  background: #000;
+  cursor: pointer;
   transition: opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+.dialogue-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dialogue-box {
+  max-width: 720px;
+  width: min(86vw, 720px);
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.dialogue-speaker {
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  margin: 0 0 16px 0;
+}
+
+.dialogue-text {
+  font-size: clamp(18px, 3vw, 28px);
+  line-height: 1.8;
+  margin: 0;
+  white-space: pre-line;
+  min-height: 120px;
+}
+
+.dialogue-hint {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 24px;
+  text-align: right;
+  animation: pulseOpacity 2s infinite;
+}
+
+.dialogue-text.fade-in {
+  animation: dialogueFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes dialogueFadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseOpacity {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.startup-overlay__content { transition: opacity var(--transition-normal), visibility var(--transition-normal);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }

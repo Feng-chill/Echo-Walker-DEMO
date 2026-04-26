@@ -10,6 +10,9 @@ const modeSelectionMenu = document.getElementById("modeSelectionMenu");
 const levelSelectionMenu = document.getElementById("levelSelectionMenu");
 const btnBackToModes = document.getElementById("btnBackToModes");
 const orientationHint = document.getElementById("orientationHint");
+const tutorialIntroOverlay = document.getElementById("tutorialIntroOverlay");
+const dialogueSpeaker = document.getElementById("dialogueSpeaker");
+const dialogueText = document.getElementById("dialogueText");
 const ctx = canvas.getContext("2d", { alpha: false });
 const input = new Input(canvas);
 const audio = new AudioManager();
@@ -174,13 +177,90 @@ modeCards.forEach(card => {
       levelSelectionMenu.classList.remove("hidden");
     } else if (mode === "tutorial") {
       modeSelectionMenu.classList.add("hidden");
-      game.startPlaying(mode);
+      startTutorialIntro();
     } else if (mode === "fun") {
       modeSelectionMenu.classList.add("hidden");
       alert("娱乐模式正在开发中...");
       modeSelectionMenu.classList.remove("hidden");
     }
   });
+});
+
+const tutorialDialogues = [
+  { speaker: "神秘人", text: "你终于醒了。\n别急着站起来，先听。\n这个世界里，最危险的东西不是沉默，而是 Noise。", color: "#FF00FF" },
+  { speaker: "玩家", text: "Noise？那些红色的东西？", color: "#00FFFF" },
+  { speaker: "神秘人", text: "不只是它们。\n催促、怀疑、失败后的回声……都会在这里长出形状。", color: "#FF00FF" },
+  { speaker: "神秘人", text: "如果只用攻击回应攻击，你很快会被吞没。\n你要做的，是在它抵达前听见它。\n接住它，反射它，让噪声变成回响。", color: "#FF00FF" },
+  { speaker: "玩家", text: "那我该往哪里走？", color: "#00FFFF" },
+  { speaker: "神秘人", text: "向前。\n第一段回廊会教你如何活下来。\n走吧，回响行者。", color: "#FF00FF" }
+];
+
+let currentDialogueIndex = 0;
+let lastDialogueClickTime = 0;
+
+function startTutorialIntro() {
+  currentDialogueIndex = 0;
+  if (tutorialIntroOverlay) {
+    tutorialIntroOverlay.classList.remove("hidden");
+  }
+  showDialogueLine();
+}
+
+function showDialogueLine() {
+  if (currentDialogueIndex >= tutorialDialogues.length) {
+    finishTutorialIntro();
+    return;
+  }
+  
+  const line = tutorialDialogues[currentDialogueIndex];
+  if (dialogueSpeaker) {
+    dialogueSpeaker.textContent = line.speaker;
+    dialogueSpeaker.style.color = line.color;
+  }
+  if (dialogueText) {
+    dialogueText.textContent = line.text;
+    dialogueText.style.color = line.color;
+    
+    dialogueText.classList.remove("fade-in");
+    void dialogueText.offsetWidth; // trigger reflow
+    dialogueText.classList.add("fade-in");
+  }
+}
+
+function advanceDialogue() {
+  const now = performance.now();
+  if (now - lastDialogueClickTime < 150) return; // 150ms cooldown
+  lastDialogueClickTime = now;
+  
+  currentDialogueIndex++;
+  showDialogueLine();
+}
+
+function finishTutorialIntro() {
+  if (tutorialIntroOverlay) {
+    tutorialIntroOverlay.classList.add("hidden");
+  }
+  game.startPlaying("tutorial");
+}
+
+if (tutorialIntroOverlay) {
+  tutorialIntroOverlay.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    advanceDialogue();
+  });
+}
+
+window.addEventListener("keydown", (e) => {
+  if (!tutorialIntroOverlay || tutorialIntroOverlay.classList.contains("hidden")) return;
+  
+  if (e.code === "Space" || e.code === "Enter") {
+    e.preventDefault();
+    advanceDialogue();
+  } else if (e.code === "Escape") {
+    e.preventDefault();
+    currentDialogueIndex = tutorialDialogues.length;
+    finishTutorialIntro();
+  }
 });
 
 const levelCards = document.querySelectorAll("#levelSelectionMenu .level-card");
