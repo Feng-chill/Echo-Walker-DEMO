@@ -278,6 +278,88 @@ const CONFIG = {
       voidFall: "坠入虚空，回到当前区域起点。"
     }
   },
+  demoLevel: {
+    id: "demo-arena",
+    title: "回响练手场",
+    subtitle: "DEMO关卡",
+    intro: "短场景爽感测试：打碎绿块，接住噪声，把它们反射回去。",
+    playerStart: { x: 110, y: 474 },
+    platforms: [
+      { x: 0, y: 520, width: 760, height: 42, type: "standard" },
+      { x: 840, y: 520, width: 860, height: 42, type: "standard" },
+      { x: 300, y: 430, width: 160, height: 24, type: "echo" },
+      { x: 610, y: 370, width: 170, height: 24, type: "standard" },
+      { x: 1010, y: 412, width: 190, height: 24, type: "echo" },
+      { x: 1320, y: 342, width: 180, height: 24, type: "standard" }
+    ],
+    blocks: [
+      { id: "demo-blue-a", roomId: "demo-room", x: 438, y: 472, width: 48, height: 48, type: "breakable" },
+      {
+        id: "demo-green-a",
+        roomId: "demo-room",
+        x: 910,
+        y: 472,
+        width: 48,
+        height: 48,
+        type: "spawn",
+        required: true,
+        spawnEnemies: [
+          { x: 1060, y: 470, type: "striker" },
+          { x: 1190, y: 470, type: "striker" },
+          { x: 1420, y: 300, type: "caster" }
+        ]
+      }
+    ],
+    rooms: [
+      {
+        id: "demo-room",
+        bounds: { x: 0, width: 1700 },
+        respawn: { x: 110, y: 474 },
+        barrierRight: { x: 1664, y: 32, width: 12, height: 680 },
+        enemies: [
+          { x: 350, y: 470, type: "striker" },
+          { x: 655, y: 328, type: "caster" },
+          { x: 1285, y: 470, type: "striker" },
+          { x: 1465, y: 470, type: "caster" }
+        ]
+      }
+    ],
+    exit: { x: 1588, y: 414, width: 62, height: 106 },
+    ruleSigns: [
+      {
+        x: 72,
+        y: 360,
+        width: 560,
+        height: 118,
+        title: "DEMO / 回响练手场",
+        lines: [
+          "打碎蓝块开路，打碎绿块召来更多敌人。",
+          "轻按回响抓近战红光，按住回响反射远程弹幕。",
+          "回响值满后开启无双，直接把节奏推到终点。"
+        ],
+        accent: "gold"
+      }
+    ],
+    fissures: [
+      { x: 760, y: 522, width: 80, height: 88 }
+    ],
+    farStructures: [
+      { x: 120, y: 112, width: 110, height: 58, accent: "echo" },
+      { x: 480, y: 94, width: 130, height: 68, accent: "noise" },
+      { x: 840, y: 126, width: 118, height: 56, accent: "echo" },
+      { x: 1220, y: 90, width: 152, height: 82, accent: "noise" },
+      { x: 1540, y: 142, width: 120, height: 58, accent: "echo" }
+    ],
+    messages: {
+      blockBreak: "蓝色方块已破坏，继续推进。",
+      spawnBlock: "绿块破裂，噪声增幅！",
+      roomEnter: "DEMO封锁启动。",
+      roomClear: "练手场已清空，出口开启。",
+      barrierBlocked: "先清空场内噪声，再离开。",
+      exitBlocked: "清完敌人并打碎绿块后，出口才会开启。",
+      voidFall: "跌入裂隙，回到练手场起点。"
+    }
+  },
   tutorialLevel: {
     intro: "教程：先理解节奏，再用回响回应它。",
     playerStart: { x: 120, y: 474 },
@@ -330,4 +412,9 @@ const CONFIG = {
     barrier: "#ff00ff",
     laser: "#9cff72"
   }
+};
+
+CONFIG.classicLevels = {
+  "silent-corridor": CONFIG.level,
+  "demo-arena": CONFIG.demoLevel
 };

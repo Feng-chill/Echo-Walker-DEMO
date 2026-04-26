@@ -145,7 +145,7 @@ class Game {
       this.activateRoom(levelData.rooms[0].id, true);
     } else {
       this.enemies = (levelData.enemies ?? []).map((enemy) => this.spawnConfiguredEnemy(enemy));
-      this.enemyPlatforms = [...this.platforms];
+      this.buildStagePlatforms();
     }
 
     if (this.mode === "tutorial") {
@@ -352,7 +352,8 @@ class Game {
   }
 
   getCurrentLevel() {
-    return this.mode === "tutorial" ? CONFIG.tutorialLevel : CONFIG.level;
+    if (this.mode === "tutorial") return CONFIG.tutorialLevel;
+    return CONFIG.classicLevels?.[this.classicLevelId] ?? CONFIG.level;
   }
 
   startPlaying(mode = "classic", levelId = "silent-corridor") {

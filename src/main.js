@@ -268,7 +268,7 @@ levelCards.forEach(card => {
   card.addEventListener("click", () => {
     audio.unlock();
     const level = card.dataset.level;
-    if (level === "silent-corridor") {
+    if (level === "silent-corridor" || level === "demo-arena") {
       levelSelectionMenu.classList.add("hidden");
       game.startPlaying("classic", level);
       return;
