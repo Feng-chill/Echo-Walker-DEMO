@@ -351,7 +351,7 @@ class CombatSystem {
 
   resolveEnemyProjectile(player, projectile) {
     if (player.state === "parry" && this.withinGuardField(player, projectile, false)) {
-      this.reflectProjectile(player, projectile, player.getParryElapsed() <= CONFIG.combat.parryPerfectWindow);
+      this.reflectProjectile(player, projectile, player.isPerfectParryTiming());
       return;
     }
     if (player.state === "shield" && this.withinGuardField(player, projectile, true)) {
@@ -439,7 +439,7 @@ class CombatSystem {
       if (!enemy.isAlive || !box.active || (!bodyHit && !parryCatch && !shieldCatch)) continue;
 
       if (parryCatch) {
-        if (player.getParryElapsed() <= CONFIG.combat.parryPerfectWindow) {
+        if (player.isPerfectParryTiming()) {
           this.perfectParry(player, enemy);
         } else {
           this.normalParry(player, enemy);

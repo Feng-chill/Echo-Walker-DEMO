@@ -161,6 +161,9 @@ class Game {
         }
       });
     }
+    if (this.mode === "classic") {
+      this.setupClassicModeRun();
+    }
     this.camera.x = 0;
     this.camera.y = 0;
     this.result = null;
@@ -168,6 +171,12 @@ class Game {
     if (this.mode === "fun") {
       this.setupFunModeRun();
     }
+  }
+
+  setupClassicModeRun() {
+    this.player.parryWindowOverride = 0.22;
+    this.player.parryPerfectWindowOverride = 0.11;
+    this.player.shieldHoldThresholdOverride = 0.22;
   }
 
   spawnConfiguredEnemy(enemyConfig, roomId = null) {
@@ -246,6 +255,10 @@ class Game {
       boxHeight: 58
     };
     this.player.parryRecoveryOverride = 0;
+    this.player.parryWindowOverride = 0.18;
+    this.player.parryPerfectWindowOverride = 0.18;
+    this.player.disableShield = true;
+    this.player.forcePerfectParry = true;
     this.player.maxHealth = 320;
     this.player.health = this.player.maxHealth;
     this.spawnNextFunWave();
@@ -550,6 +563,11 @@ class Game {
     const burstWasActive = this.player.isUltimate;
     const previousWeaponIndex = this.player.weaponIndex;
     this.stats.time += dt;
+    if (this.mode === "fun" && this.input.wasPressed("parry")) {
+      const center = rectCenter(this.player.getHitbox());
+      this.effects.addRing(center.x, center.y, CONFIG.palette.white, true);
+      this.effects.addRing(center.x, center.y, CONFIG.palette.echo, false);
+    }
     const world = this.getWorldBounds();
     this.player.update(dt, this.input, this.platforms, world);
     this.rescuePlayerFromVoid();

@@ -24,7 +24,12 @@ class Player extends Entity {
     this.ultimateTimer = 0;
     this.weaponIndex = 0;
     this.weaponOverride = null;
+    this.parryWindowOverride = null;
+    this.parryPerfectWindowOverride = null;
     this.parryRecoveryOverride = null;
+    this.shieldHoldThresholdOverride = null;
+    this.disableShield = false;
+    this.forcePerfectParry = false;
     this.attackConsumed = false;
     this.lastParryResult = "";
     this.quickParryOnly = false;
@@ -77,9 +82,9 @@ class Player extends Entity {
     }
     if (this.parryTimer > 0) {
       this.parryTimer = Math.max(0, this.parryTimer - dt);
-      if (this.state === "parry" && input.isDown("parry") && !this.quickParryOnly) {
+      if (this.state === "parry" && input.isDown("parry") && !this.quickParryOnly && !this.disableShield) {
         this.parryHoldTimer += dt;
-        if (this.parryHoldTimer >= CONFIG.combat.shieldHoldThreshold) {
+        if (this.parryHoldTimer >= this.getShieldHoldThreshold()) {
           this.state = "shield";
           this.parryTimer = 0;
         }
@@ -136,12 +141,17 @@ class Player extends Entity {
       return;
     }
 
+    const jumpPressed = input.wasPressed("jump");
+    const parryPressed = input.wasPressed("parry");
+
+    if (jumpPressed && this.canJumpDuringActionLock()) this.jump();
+    if (parryPressed && this.canRestartParryDuringActionLock()) this.startParry(false);
     if (this.isActionLocked()) return;
 
     if (input.wasPressed("weapon")) this.switchWeapon();
-    if (input.wasPressed("jump")) this.jump();
+    if (jumpPressed) this.jump();
     if (input.wasPressed("attack")) this.startAttack();
-    if (input.wasPressed("parry")) this.startParry(false);
+    if (parryPressed) this.startParry(false);
   }
 
   updateMovement(dt, input) {
@@ -214,6 +224,14 @@ class Player extends Entity {
       this.state === "dead";
   }
 
+  canJumpDuringActionLock() {
+    return this.state === "parry" || this.state === "parry_recovery";
+  }
+
+  canRestartParryDuringActionLock() {
+    return this.state === "parry" || this.state === "parry_recovery";
+  }
+
   jump() {
     if (this.isGrounded) {
       this.vy = this.jumpForce;
@@ -240,7 +258,7 @@ class Player extends Entity {
 
   startParry(quickOnly = false) {
     this.state = "parry";
-    this.parryTimer = CONFIG.combat.parryNormalWindow;
+    this.parryTimer = this.getParryWindow();
     this.parryHoldTimer = 0;
     this.lastParryResult = "";
     this.quickParryOnly = quickOnly;
@@ -283,7 +301,23 @@ class Player extends Entity {
   }
 
   getParryElapsed() {
-    return CONFIG.combat.parryNormalWindow - this.parryTimer;
+    return this.getParryWindow() - this.parryTimer;
+  }
+
+  getParryWindow() {
+    return this.parryWindowOverride ?? CONFIG.combat.parryNormalWindow;
+  }
+
+  getParryPerfectWindow() {
+    return this.parryPerfectWindowOverride ?? CONFIG.combat.parryPerfectWindow;
+  }
+
+  getShieldHoldThreshold() {
+    return this.shieldHoldThresholdOverride ?? CONFIG.combat.shieldHoldThreshold;
+  }
+
+  isPerfectParryTiming() {
+    return this.forcePerfectParry || this.getParryElapsed() <= this.getParryPerfectWindow();
   }
 
   addRage(amount) {
