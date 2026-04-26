@@ -25,6 +25,13 @@ class CombatSystem {
     this.effects.addMessage(perfect ? "完美回响，生命回复。" : "回响成功，生命回复。", CONFIG.palette.gold, perfect ? 0.72 : 0.58);
   }
 
+  vibratePerfectParry() {
+    if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+    const isTouchDevice = navigator.maxTouchPoints > 0 || typeof window !== "undefined" && "ontouchstart" in window;
+    if (!isTouchDevice) return;
+    navigator.vibrate([18, 18, 34]);
+  }
+
   update(player, enemies, dt, platforms, stage = null) {
     this.spawnPlayerProjectiles(player, platforms, stage);
     this.updateProjectiles(enemies, dt, player, platforms, stage);
@@ -376,6 +383,7 @@ class CombatSystem {
     this.healOnParry(player, perfect);
     if (perfect) {
       this.audio?.playSfx("parry");
+      this.vibratePerfectParry();
       this.stats.perfectParry += 1;
       if (projectile.sourceEnemy) {
         projectile.sourceEnemy.perfectParryCount = (projectile.sourceEnemy.perfectParryCount || 0) + 1;
@@ -482,6 +490,7 @@ class CombatSystem {
     this.stats.combo += 2;
     this.stats.maxCombo = Math.max(this.stats.maxCombo, this.stats.combo);
     this.audio?.playSfx("parry");
+    this.vibratePerfectParry();
 
     const hit = rectCenter(enemy);
     this.effects.addMessage("完美回响", CONFIG.palette.white, 0.92);
