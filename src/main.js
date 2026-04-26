@@ -8,7 +8,16 @@ const btnEnterGame = document.getElementById("btnEnterGame");
 const gameViewport = document.getElementById("gameViewport");
 const modeSelectionMenu = document.getElementById("modeSelectionMenu");
 const levelSelectionMenu = document.getElementById("levelSelectionMenu");
+const funSelectionMenu = document.getElementById("funSelectionMenu");
 const btnBackToModes = document.getElementById("btnBackToModes");
+const btnBackToModesFromFun = document.getElementById("btnBackToModesFromFun");
+const recordsDock = document.getElementById("recordsDock");
+const recordsToggleBtn = document.getElementById("recordsToggleBtn");
+const recordsPanel = document.getElementById("recordsPanel");
+const recordsCloseBtn = document.getElementById("recordsCloseBtn");
+const recordsResetBtn = document.getElementById("recordsResetBtn");
+const recordsSummary = document.getElementById("recordsSummary");
+const recordsList = document.getElementById("recordsList");
 const orientationHint = document.getElementById("orientationHint");
 const tutorialIntroOverlay = document.getElementById("tutorialIntroOverlay");
 const dialogueSpeaker = document.getElementById("dialogueSpeaker");
@@ -54,6 +63,7 @@ function frame(now) {
     game.render();
     input.endFrame();
     syncMenuState();
+    syncRecordsDock();
     syncAudioState();
     requestAnimationFrame(frame);
   } catch (error) {
@@ -136,6 +146,8 @@ if (startFullscreenBtn && startupOverlay) {
       setTimeout(() => {
         startupOverlay.style.display = "none";
         modeSelectionMenu.classList.remove("hidden");
+        renderRecordsPanel();
+        syncRecordsDock();
         resize();
         syncAudioState();
       }, 500);
@@ -161,6 +173,8 @@ if (btnEnterGame && startupOverlay && modeSelectionMenu) {
     setTimeout(() => {
       startupOverlay.style.display = "none";
       modeSelectionMenu.classList.remove("hidden");
+      renderRecordsPanel();
+      syncRecordsDock();
       syncAudioState();
     }, 500);
   });
@@ -171,6 +185,7 @@ modeCards.forEach(card => {
   card.addEventListener("click", () => {
     audio.unlock();
     const mode = card.dataset.mode;
+    closeRecordsPanel();
     
     if (mode === "classic") {
       modeSelectionMenu.classList.add("hidden");
@@ -180,8 +195,7 @@ modeCards.forEach(card => {
       startTutorialIntro();
     } else if (mode === "fun") {
       modeSelectionMenu.classList.add("hidden");
-      alert("娱乐模式正在开发中...");
-      modeSelectionMenu.classList.remove("hidden");
+      funSelectionMenu.classList.remove("hidden");
     }
   });
 });
@@ -269,6 +283,7 @@ levelCards.forEach(card => {
     audio.unlock();
     const level = card.dataset.level;
     if (level === "silent-corridor" || level === "demo-arena") {
+      closeRecordsPanel();
       levelSelectionMenu.classList.add("hidden");
       game.startPlaying("classic", level);
       return;
@@ -280,8 +295,153 @@ levelCards.forEach(card => {
 if (btnBackToModes) {
   btnBackToModes.addEventListener("click", () => {
     audio.unlock();
+    closeRecordsPanel();
     levelSelectionMenu.classList.add("hidden");
     modeSelectionMenu.classList.remove("hidden");
+  });
+}
+
+const funCards = document.querySelectorAll("#funSelectionMenu .fun-card");
+funCards.forEach(card => {
+  card.addEventListener("click", () => {
+    audio.unlock();
+    const funMode = card.dataset.funMode;
+    if (funMode === "mode-one") {
+      closeRecordsPanel();
+      funSelectionMenu.classList.add("hidden");
+      game.startPlaying("fun", "mode-one");
+      return;
+    }
+    alert("该模式未开放");
+  });
+});
+
+if (btnBackToModesFromFun) {
+  btnBackToModesFromFun.addEventListener("click", () => {
+    audio.unlock();
+    closeRecordsPanel();
+    funSelectionMenu.classList.add("hidden");
+    modeSelectionMenu.classList.remove("hidden");
+  });
+}
+
+function formatScore(value) {
+  return Math.max(0, Math.round(value || 0)).toLocaleString("zh-CN");
+}
+
+function formatTime(value) {
+  return `${Number(value || 0).toFixed(1)}秒`;
+}
+
+function getLevelDisplayName(levelId, fallback) {
+  if (levelId === "tutorial") return "新手教程";
+  const level = CONFIG.classicLevels?.[levelId];
+  if (!level) return fallback || levelId;
+  return level.subtitle ? `${level.subtitle}：${level.title}` : level.title;
+}
+
+function appendSummaryItem(parent, label, value) {
+  const item = document.createElement("div");
+  item.className = "records-summary__item";
+  const labelEl = document.createElement("span");
+  labelEl.className = "records-summary__label";
+  labelEl.textContent = label;
+  const valueEl = document.createElement("strong");
+  valueEl.className = "records-summary__value";
+  valueEl.textContent = value;
+  item.append(labelEl, valueEl);
+  parent.appendChild(item);
+}
+
+function renderRecordsPanel() {
+  if (!recordsSummary || !recordsList || !window.ScoreStorage) return;
+
+  const data = window.ScoreStorage.load();
+  recordsSummary.textContent = "";
+  recordsList.textContent = "";
+
+  appendSummaryItem(recordsSummary, "累计积分", formatScore(data.totalScore));
+  appendSummaryItem(recordsSummary, "通关次数", `${data.totalClears || 0}`);
+  appendSummaryItem(recordsSummary, "单关最佳", formatScore(data.bestScore));
+
+  const records = Object.values(data.levels || {})
+    .sort((a, b) => (b.bestScore || 0) - (a.bestScore || 0));
+
+  if (records.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "records-empty";
+    empty.textContent = "还没有通关记录。完成任意关卡后会自动保存积分。";
+    recordsList.appendChild(empty);
+    return;
+  }
+
+  records.forEach((record) => {
+    const card = document.createElement("article");
+    card.className = "records-card";
+
+    const top = document.createElement("div");
+    top.className = "records-card__top";
+    const title = document.createElement("h3");
+    title.className = "records-card__title";
+    title.textContent = getLevelDisplayName(record.levelId, record.levelTitle);
+    const score = document.createElement("div");
+    score.className = "records-card__score";
+    score.textContent = formatScore(record.bestScore);
+    top.append(title, score);
+
+    const meta = document.createElement("div");
+    meta.className = "records-card__meta";
+    meta.textContent = `最佳 ${record.bestRank || "-"} / ${formatTime(record.bestTime)} · 通关 ${record.clears || 0} 次`;
+
+    const history = document.createElement("div");
+    history.className = "records-card__history";
+    history.textContent = `最近一次：${formatScore(record.lastScore)} 分，${formatTime(record.lastTime)}`;
+
+    card.append(top, meta, history);
+    recordsList.appendChild(card);
+  });
+}
+
+function openRecordsPanel() {
+  renderRecordsPanel();
+  recordsPanel?.classList.remove("hidden");
+}
+
+function closeRecordsPanel() {
+  recordsPanel?.classList.add("hidden");
+}
+
+function syncRecordsDock() {
+  if (!recordsDock) return;
+  const startupVisible = startupOverlay && startupOverlay.style.display !== "none" && !startupOverlay.classList.contains("hidden");
+  const menuVisible = game.state === "menu" && modeSelectionMenu && !modeSelectionMenu.classList.contains("hidden");
+  const visible = Boolean(!startupVisible && menuVisible);
+  recordsDock.classList.toggle("hidden", !visible);
+  if (!visible) closeRecordsPanel();
+}
+
+if (recordsToggleBtn) {
+  recordsToggleBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    audio.unlock();
+    if (recordsPanel?.classList.contains("hidden")) {
+      openRecordsPanel();
+    } else {
+      closeRecordsPanel();
+    }
+  });
+}
+
+if (recordsCloseBtn) {
+  recordsCloseBtn.addEventListener("click", closeRecordsPanel);
+}
+
+if (recordsResetBtn) {
+  recordsResetBtn.addEventListener("click", () => {
+    if (!window.confirm("确定要清空本地个人纪录吗？")) return;
+    window.ScoreStorage?.reset();
+    renderRecordsPanel();
   });
 }
 
@@ -294,11 +454,14 @@ function syncMenuState() {
       if (startupOverlay.style.display === "none") {
         modeSelectionMenu.classList.remove("hidden");
         levelSelectionMenu.classList.add("hidden");
+        funSelectionMenu.classList.add("hidden");
+        renderRecordsPanel();
       }
     } else {
       if (backToMenuBtn) backToMenuBtn.hidden = false;
       modeSelectionMenu.classList.add("hidden");
       levelSelectionMenu.classList.add("hidden");
+      funSelectionMenu.classList.add("hidden");
     }
     previousGameState = game.state;
   }
@@ -308,13 +471,14 @@ function syncAudioState() {
   const startupVisible = startupOverlay && startupOverlay.style.display !== "none" && !startupOverlay.classList.contains("hidden");
   const menuVisible = modeSelectionMenu && !modeSelectionMenu.classList.contains("hidden");
   const levelVisible = levelSelectionMenu && !levelSelectionMenu.classList.contains("hidden");
+  const funVisible = funSelectionMenu && !funSelectionMenu.classList.contains("hidden");
 
   if (startupVisible) {
     audio.stopBgm();
     return;
   }
 
-  if (game.state === "playing" && game.mode === "classic") {
+  if (game.state === "playing" && (game.mode === "classic" || game.mode === "fun")) {
     audio.playBgm("scene");
     return;
   }
@@ -324,7 +488,7 @@ function syncAudioState() {
     return;
   }
 
-  if (game.state === "menu" && (menuVisible || levelVisible)) {
+  if (game.state === "menu" && (menuVisible || levelVisible || funVisible)) {
     audio.playBgm("menu");
     return;
   }

@@ -413,6 +413,11 @@ body {
   max-width: 1120px;
 }
 
+.mode-menu__grid--fun {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 720px;
+}
+
 .mode-menu__back {
   margin-top: var(--spacing-xl);
 }
@@ -458,6 +463,179 @@ body {
   line-height: 1.4;
 }
 
+.records-dock {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  z-index: 930;
+}
+
+.records-dock.hidden,
+.records-panel.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.records-toggle {
+  min-width: 118px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(120, 244, 255, 0.5);
+  border-radius: 4px;
+  background: rgba(5, 13, 26, 0.82);
+  box-shadow: 0 0 18px rgba(120, 244, 255, 0.18);
+  color: #dffcff;
+  cursor: pointer;
+  font: 600 0.9rem/1 var(--font-family-system);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.records-toggle:hover,
+.records-toggle:focus-visible {
+  border-color: var(--color-text-primary);
+  box-shadow: 0 0 18px var(--color-glow);
+}
+
+.records-toggle:active {
+  transform: scale(0.98);
+}
+
+.records-panel {
+  position: absolute;
+  right: 24px;
+  bottom: 82px;
+  z-index: 950;
+  width: min(420px, calc(100vw - 32px));
+  max-height: min(72vh, 560px);
+  padding: 18px;
+  border: 1px solid rgba(120, 244, 255, 0.34);
+  border-radius: 8px;
+  background: #030912;
+  box-shadow: 0 0 28px rgba(120, 244, 255, 0.2);
+  color: var(--color-text-primary);
+  overflow: auto;
+  transition: opacity var(--transition-normal), transform var(--transition-normal), visibility var(--transition-normal);
+}
+
+.records-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.records-panel__header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.records-panel__icon-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.records-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.records-summary__item {
+  min-height: 64px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.records-summary__label,
+.records-card__meta,
+.records-card__history {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
+.records-summary__value {
+  display: block;
+  margin-top: 6px;
+  color: #ffd56b;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.records-card {
+  padding: 12px;
+  border: 1px solid rgba(120, 244, 255, 0.18);
+  border-radius: 6px;
+  background: rgba(120, 244, 255, 0.04);
+}
+
+.records-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.records-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.records-card__score {
+  color: #ffd56b;
+  font: 700 1rem/1 "Lucida Console", monospace;
+  white-space: nowrap;
+}
+
+.records-card__meta {
+  line-height: 1.6;
+}
+
+.records-card__history {
+  margin-top: 8px;
+}
+
+.records-empty {
+  padding: 18px 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.records-reset {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid rgba(255, 61, 102, 0.36);
+  border-radius: 4px;
+  background: transparent;
+  color: #ffd6df;
+  cursor: pointer;
+  font: 500 0.85rem/1 var(--font-family-system);
+}
+
 @media (max-width: 768px), (max-height: 450px) {
   .mode-menu {
     justify-content: flex-start;
@@ -474,6 +652,18 @@ body {
   }
   .startup-overlay__actions {
     flex-direction: column;
+  }
+  .records-dock {
+    right: 16px;
+    bottom: 16px;
+  }
+  .records-panel {
+    right: 16px;
+    bottom: 70px;
+    max-height: calc(100vh - 88px);
+  }
+  .records-summary {
+    grid-template-columns: 1fr;
   }
 }
 

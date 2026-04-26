@@ -23,6 +23,8 @@ class Player extends Entity {
     this.isUltimate = false;
     this.ultimateTimer = 0;
     this.weaponIndex = 0;
+    this.weaponOverride = null;
+    this.parryRecoveryOverride = null;
     this.attackConsumed = false;
     this.lastParryResult = "";
     this.quickParryOnly = false;
@@ -83,15 +85,27 @@ class Player extends Entity {
         }
       }
       if (this.parryTimer === 0 && this.state === "parry") {
-        this.state = "parry_recovery";
         this.quickParryOnly = false;
-        this.parryRecoveryTimer = CONFIG.combat.parryRecovery;
+        const recovery = this.parryRecoveryOverride ?? CONFIG.combat.parryRecovery;
+        if (recovery <= 0) {
+          this.state = "idle";
+          this.parryRecoveryTimer = 0;
+        } else {
+          this.state = "parry_recovery";
+          this.parryRecoveryTimer = recovery;
+        }
       }
     }
     if (this.state === "shield" && !input.isDown("parry")) {
-      this.state = "parry_recovery";
       this.quickParryOnly = false;
-      this.parryRecoveryTimer = CONFIG.combat.parryRecovery;
+      const recovery = this.parryRecoveryOverride ?? CONFIG.combat.parryRecovery;
+      if (recovery <= 0) {
+        this.state = "idle";
+        this.parryRecoveryTimer = 0;
+      } else {
+        this.state = "parry_recovery";
+        this.parryRecoveryTimer = recovery;
+      }
     }
     if (this.parryRecoveryTimer > 0) {
       this.parryRecoveryTimer = Math.max(0, this.parryRecoveryTimer - dt);
@@ -287,6 +301,7 @@ class Player extends Entity {
   }
 
   getWeapon() {
+    if (this.weaponOverride) return this.weaponOverride;
     return CONFIG.weapons[this.weaponIndex];
   }
 

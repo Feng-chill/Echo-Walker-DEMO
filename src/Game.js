@@ -18,6 +18,9 @@ class Game {
     this.enemies = [];
     this.mode = "classic";
     this.classicLevelId = "silent-corridor";
+    this.funModeId = "mode-one";
+    this.funWave = 0;
+    this.funWaveSize = 10;
     this.fps = 60;
     this.result = null;
     this.menuPulse = 0;
@@ -161,6 +164,10 @@ class Game {
     this.camera.x = 0;
     this.camera.y = 0;
     this.result = null;
+
+    if (this.mode === "fun") {
+      this.setupFunModeRun();
+    }
   }
 
   spawnConfiguredEnemy(enemyConfig, roomId = null) {
@@ -169,6 +176,113 @@ class Game {
     enemy.allowCloseRangeShot = this.mode === "classic";
     if (typeof enemyConfig.patrolDir === "number") enemy.patrolDir = enemyConfig.patrolDir;
     return enemy;
+  }
+
+  getWorldBounds() {
+    if (this.mode !== "fun") return CONFIG.world;
+    const width = Math.max(900, Math.round(this.width * 1.5));
+    const height = Math.max(540, this.height);
+    return {
+      ...CONFIG.world,
+      width,
+      height,
+      floorDeathY: height + 360
+    };
+  }
+
+  getFunFloorY() {
+    return Math.max(280, this.height - 74);
+  }
+
+  getFunLevel() {
+    const world = this.getWorldBounds();
+    const floorY = this.getFunFloorY();
+    return {
+      id: "fun-mode-one",
+      title: "模式一",
+      subtitle: "娱乐模式",
+      intro: "无后摇爽打模式：清完 10 个近战噪声体会立刻刷新下一波。",
+      playerStart: { x: 90, y: floorY - CONFIG.player.height },
+      platforms: [
+        { x: 0, y: floorY, width: world.width, height: 58, type: "standard", label: "FUN MODE" }
+      ],
+      enemies: [],
+      blocks: [],
+      rooms: [],
+      enemyGuards: [],
+      exit: null,
+      fissures: [],
+      farStructures: [],
+      ruleSigns: [
+        {
+          x: 72,
+          y: Math.max(130, floorY - 150),
+          width: 520,
+          height: 98,
+          title: "娱乐模式 / 模式一",
+          lines: [
+            "近战武器范围扩大，攻击无后摇。",
+            "弹反结束无后摇。击破一波 10 个近战噪声体后立刻刷新。"
+          ],
+          accent: "gold"
+        }
+      ]
+    };
+  }
+
+  setupFunModeRun() {
+    this.funWave = 0;
+    this.player.weaponIndex = 0;
+    this.player.weaponOverride = {
+      ...CONFIG.weapons[0],
+      id: "fun-cleaver",
+      name: "爽快回响刃",
+      shortName: "爽刃",
+      damage: 52,
+      startup: 0.025,
+      active: 0.14,
+      recovery: 0,
+      boxWidth: 132,
+      boxHeight: 58
+    };
+    this.player.parryRecoveryOverride = 0;
+    this.player.maxHealth = 320;
+    this.player.health = this.player.maxHealth;
+    this.spawnNextFunWave();
+  }
+
+  spawnNextFunWave() {
+    if (this.mode !== "fun") return;
+
+    this.funWave += 1;
+    const world = this.getWorldBounds();
+    const floorY = this.getFunFloorY();
+    const usableStart = 260;
+    const usableEnd = Math.max(usableStart + 120, world.width - 90);
+    const gap = (usableEnd - usableStart) / Math.max(1, this.funWaveSize - 1);
+    this.enemies = [];
+
+    for (let i = 0; i < this.funWaveSize; i += 1) {
+      const enemy = this.spawnConfiguredEnemy({
+        x: usableStart + gap * i,
+        y: floorY - 50,
+        type: "striker",
+        patrolDir: i % 2 === 0 ? -1 : 1
+      });
+      enemy.maxHealth = 90 + Math.min(60, (this.funWave - 1) * 5);
+      enemy.health = enemy.maxHealth;
+      enemy.speed = CONFIG.enemy.speed * 1.05;
+      this.enemies.push(enemy);
+    }
+
+    this.effects.addMessage(`娱乐模式：第 ${this.funWave} 波`, CONFIG.palette.gold, 1.2);
+  }
+
+  updateFunMode() {
+    if (this.mode !== "fun") return;
+    if (this.enemies.some((enemy) => enemy.isAlive)) return;
+    this.stats.combo = Math.max(this.stats.combo, 0);
+    this.spawnNextFunWave();
   }
 
   getRoomState(roomId) {
@@ -344,6 +458,7 @@ class Game {
   }
 
   isStageCleared() {
+    if (this.mode === "fun") return false;
     if (this.mode === "tutorial") return !this.enemies.some((enemy) => enemy.isAlive);
     const rooms = this.getCurrentLevel().rooms ?? [];
     if (rooms.length === 0) return !this.enemies.some((enemy) => enemy.isAlive);
@@ -353,12 +468,14 @@ class Game {
 
   getCurrentLevel() {
     if (this.mode === "tutorial") return CONFIG.tutorialLevel;
+    if (this.mode === "fun") return this.getFunLevel();
     return CONFIG.classicLevels?.[this.classicLevelId] ?? CONFIG.level;
   }
 
   startPlaying(mode = "classic", levelId = "silent-corridor") {
     this.mode = mode;
     if (mode === "classic") this.classicLevelId = levelId;
+    if (mode === "fun") this.funModeId = levelId;
     this.resetRun();
     this.state = "playing";
     if (mode === "tutorial") {
@@ -416,7 +533,7 @@ class Game {
         this.state = "menu";
         this.mode = "classic";
       } else {
-        this.startPlaying(this.mode, this.classicLevelId);
+        this.startPlaying(this.mode, this.mode === "fun" ? this.funModeId : this.classicLevelId);
       }
     }
 
@@ -433,7 +550,8 @@ class Game {
     const burstWasActive = this.player.isUltimate;
     const previousWeaponIndex = this.player.weaponIndex;
     this.stats.time += dt;
-    this.player.update(dt, this.input, this.platforms, CONFIG.world);
+    const world = this.getWorldBounds();
+    this.player.update(dt, this.input, this.platforms, world);
     this.rescuePlayerFromVoid();
     if (false && previousWeaponIndex !== this.player.weaponIndex) {
       this.effects.addMessage(`切换武器：${this.player.getWeapon().name}`, CONFIG.palette.gold, 0.75);
@@ -454,7 +572,7 @@ class Game {
     }
 
     this.enemies.forEach((enemy) => {
-      enemy.update(dt, this.player, this.enemyPlatforms, CONFIG.world);
+      enemy.update(dt, this.player, this.enemyPlatforms, world);
       const shot = enemy.consumeShot();
       if (shot) {
         this.projectiles.push(shot);
@@ -463,13 +581,14 @@ class Game {
     });
     this.combat.update(this.player, this.enemies, dt, this.platforms, this);
     this.updateRoomProgress();
+    this.updateFunMode();
     this.updateCamera(dt);
-    this.checkExit();
+    if (this.mode !== "fun") this.checkExit();
     this.checkPlayerDefeat();
   }
 
   rescuePlayerFromVoid() {
-    if (this.player.y < CONFIG.world.floorDeathY) return;
+    if (this.player.y < this.getWorldBounds().floorDeathY) return;
     const respawn = this.getRespawnPoint();
     const damaged = this.player.takeDamage(18, -this.player.facing);
     this.player.x = respawn.x;
@@ -503,14 +622,14 @@ class Game {
     const targetX = clamp(
       this.player.x + this.player.width / 2 - this.width * 0.45,
       0,
-      Math.max(0, CONFIG.world.width - this.width)
+      Math.max(0, this.getWorldBounds().width - this.width)
     );
     this.camera.x += (targetX - this.camera.x) * CONFIG.camera.lerp;
 
     const targetY = clamp(
       this.player.y + this.player.height / 2 - this.height * 0.6,
       -100,
-      Math.max(0, CONFIG.world.height - this.height)
+      Math.max(0, this.getWorldBounds().height - this.height)
     );
     this.camera.y += (targetY - this.camera.y) * CONFIG.camera.lerp;
   }
@@ -564,6 +683,7 @@ class Game {
   }
 
   checkExit() {
+    if (!this.getCurrentLevel().exit) return;
     const exitHit = intersects(this.player.getHitbox(), this.getCurrentLevel().exit);
     if (!exitHit) {
       this.exitBlockedMessageShown = false;
@@ -605,11 +725,27 @@ class Game {
   completeRun(defeated = false) {
     this.state = "result";
     this.result = this.buildResult(defeated);
+    if (!defeated && window.ScoreStorage) {
+      this.result = window.ScoreStorage.recordRun(this.result);
+    }
     if (this.mode === "tutorial" && !defeated) {
       this.effects.addMessage("善于利用回响会有意想不到的收获", CONFIG.palette.gold, 2.6);
     } else {
       this.effects.addMessage(defeated ? "再试一次" : "回响已稳定", defeated ? CONFIG.palette.noise : CONFIG.palette.echo, 1.2);
     }
+  }
+
+  calculateScore(defeated, rank) {
+    if (defeated) return 0;
+
+    const rankBonus = { S: 600, A: 360, B: 180, C: 80 }[rank] ?? 0;
+    const timeBonus = Math.max(0, 900 - Math.floor(this.stats.time * 6));
+    const parryBonus = this.stats.perfectParry * 120 + this.stats.normalParry * 35;
+    const comboBonus = this.stats.maxCombo * 45;
+    const burstBonus = this.stats.bursts * 80;
+    const damagePenalty = this.stats.damageTaken * 180;
+
+    return Math.max(100, 1000 + rankBonus + timeBonus + parryBonus + comboBonus + burstBonus - damagePenalty);
   }
 
   buildResult(defeated) {
@@ -626,10 +762,20 @@ class Game {
       title = "怒气行者";
     }
 
+    const levelData = this.getCurrentLevel();
+    const levelId = this.mode === "tutorial" ? "tutorial" : this.mode === "fun" ? this.funModeId : this.classicLevelId;
+    const levelTitle = levelData.subtitle
+      ? `${levelData.subtitle}：${levelData.title ?? "未命名关卡"}`
+      : levelData.title ?? "新手教程";
+
     return {
       defeated,
       rank,
       title,
+      mode: this.mode,
+      levelId,
+      levelTitle,
+      score: this.calculateScore(defeated, rank),
       time: this.stats.time,
       damageTaken: this.stats.damageTaken,
       perfectParry: this.stats.perfectParry,
@@ -1006,6 +1152,7 @@ class Game {
 
   renderExit(ctx) {
     const exit = this.getCurrentLevel().exit;
+    if (!exit) return;
     const clear = this.isStageCleared();
     ctx.save();
     ctx.translate(exit.x, exit.y);
@@ -1178,6 +1325,7 @@ class Game {
     this.renderOverlay(ctx, 0.72);
     const result = this.result ?? this.buildResult(false);
     const cardW = Math.min(520, this.width - 48);
+    const cardH = 400;
     const x = (this.width - cardW) / 2;
     const y = Math.max(46, this.height * 0.14);
 
@@ -1187,8 +1335,8 @@ class Game {
     ctx.lineWidth = 2;
     ctx.shadowBlur = 30;
     ctx.shadowColor = ctx.strokeStyle;
-    ctx.fillRect(x, y, cardW, 360);
-    ctx.strokeRect(x + 0.5, y + 0.5, cardW - 1, 359);
+    ctx.fillRect(x, y, cardW, cardH);
+    ctx.strokeRect(x + 0.5, y + 0.5, cardW - 1, cardH - 1);
 
     ctx.textAlign = "center";
     ctx.fillStyle = result.defeated ? CONFIG.palette.noise : CONFIG.palette.echo;
@@ -1201,6 +1349,15 @@ class Game {
     ctx.fillText(result.rank, this.width / 2, y + 130);
     ctx.font = "700 20px Lucida Console, monospace";
     ctx.fillText(result.title, this.width / 2, y + 166);
+    ctx.fillStyle = result.defeated ? "rgba(217, 251, 255, 0.62)" : CONFIG.palette.gold;
+    ctx.font = "700 16px Lucida Console, monospace";
+    const scoreText = result.defeated ? "本局未记录积分" : `本局积分 ${result.score}`;
+    ctx.fillText(scoreText, this.width / 2, y + 194);
+    if (!result.defeated && result.bestScore) {
+      ctx.fillStyle = result.isNewBest ? CONFIG.palette.gold : "rgba(217, 251, 255, 0.72)";
+      ctx.font = "12px Lucida Console, monospace";
+      ctx.fillText(result.isNewBest ? "新的个人最佳" : `个人最佳 ${result.bestScore}`, this.width / 2, y + 214);
+    }
 
     const rows = [
       ["通关时间", `${result.time.toFixed(1)}秒`],
@@ -1212,7 +1369,7 @@ class Game {
     ];
     ctx.font = "14px Lucida Console, monospace";
     rows.forEach((row, index) => {
-      const rowY = y + 212 + index * 24;
+      const rowY = y + 244 + index * 22;
       ctx.textAlign = "left";
       ctx.fillStyle = "rgba(217, 251, 255, 0.78)";
       ctx.fillText(row[0], x + 84, rowY);
@@ -1225,11 +1382,11 @@ class Game {
     ctx.fillStyle = CONFIG.palette.gold;
     ctx.font = "13px Lucida Console, monospace";
     const hintText = this.mode === "tutorial" && !result.defeated ? "点击下方按钮或按 Enter 返回菜单" : "按 Enter 或点击屏幕重新开始";
-    ctx.fillText(hintText, this.width / 2, y + 332);
+    ctx.fillText(hintText, this.width / 2, y + 374);
     if (this.mode === "tutorial" && !result.defeated) {
       ctx.fillStyle = "rgba(240, 254, 255, 0.82)";
       ctx.font = "13px Lucida Console, monospace";
-      ctx.fillText("善于利用回响会有意想不到的收获", this.width / 2, y + 356);
+      ctx.fillText("善于利用回响会有意想不到的收获", this.width / 2, y + 394);
     }
     ctx.restore();
 

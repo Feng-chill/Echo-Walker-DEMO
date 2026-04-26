@@ -13,8 +13,20 @@ class HUD {
     this.renderStats(ctx, stats, width);
     this.renderWeapon(ctx, player, width);
     if (game.mode === "tutorial") this.renderTutorialTasks(ctx, game, width);
+    if (game.mode === "fun") this.renderFunInfo(ctx, game, width);
     if (player.isUltimate) this.renderUltimateFrame(ctx, player, width, height);
     if (DEBUG) this.renderDebug(ctx, game);
+  }
+
+  renderFunInfo(ctx, game, width) {
+    ctx.save();
+    ctx.fillStyle = CONFIG.palette.gold;
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = CONFIG.palette.gold;
+    ctx.font = "700 14px Lucida Console, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`娱乐模式 第 ${game.funWave} 波`, width / 2, 52);
+    ctx.restore();
   }
 
   renderTutorialTasks(ctx, game, width) {

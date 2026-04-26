@@ -69,6 +69,35 @@
       <button id="btnBackToModes" class="btn btn--outline mode-menu__back">返回模式选择</button>
     </div>
 
+    <div id="funSelectionMenu" class="mode-menu hidden">
+      <h2 class="mode-menu__title">娱乐模式</h2>
+      <div class="mode-menu__grid mode-menu__grid--fun">
+        <button class="mode-card fun-card" data-fun-mode="mode-one">
+          <h3 class="mode-card__title">模式一</h3>
+          <p class="mode-card__desc">无后摇近战爽打，10 个近战噪声体循环刷新</p>
+        </button>
+        <button class="mode-card fun-card" data-fun-mode="locked">
+          <h3 class="mode-card__title">未开放</h3>
+          <p class="mode-card__desc">新的娱乐玩法正在施工</p>
+        </button>
+      </div>
+      <button id="btnBackToModesFromFun" class="btn btn--outline mode-menu__back">返回模式选择</button>
+    </div>
+
+    <div id="recordsDock" class="records-dock hidden">
+      <button id="recordsToggleBtn" class="records-toggle" type="button">个人纪录</button>
+    </div>
+
+    <div id="recordsPanel" class="records-panel hidden" role="dialog" aria-modal="true" aria-labelledby="recordsPanelTitle">
+      <div class="records-panel__header">
+        <h2 id="recordsPanelTitle">个人纪录</h2>
+        <button id="recordsCloseBtn" class="records-panel__icon-btn" type="button" aria-label="关闭个人纪录">×</button>
+      </div>
+      <div id="recordsSummary" class="records-summary"></div>
+      <div id="recordsList" class="records-list"></div>
+      <button id="recordsResetBtn" class="records-reset" type="button">清空纪录</button>
+    </div>
+
     <!-- 教学关卡前置对话 -->
     <div id="tutorialIntroOverlay" class="dialogue-overlay hidden">
       <div class="dialogue-box">
@@ -105,6 +134,7 @@
   </div>
   <script src="./src/i18n.js"></script>
   <script src="./src/config.js"></script>
+  <script src="./src/ScoreStorage.js"></script>
   <script src="./src/Collision.js"></script>
   <script src="./src/Entity.js"></script>
   <script src="./src/AudioManager.js"></script>
