@@ -12,7 +12,10 @@ class HUD {
     }
     this.renderStats(ctx, stats, width);
     this.renderWeapon(ctx, player, width);
-    if (game.mode === "tutorial") this.renderTutorialTasks(ctx, game, width);
+    if (game.mode === "tutorial") {
+      this.renderTutorialParryGuide(ctx, width);
+      this.renderTutorialTasks(ctx, game, width);
+    }
     if (game.mode === "fun") this.renderFunInfo(ctx, game, width);
     if (player.isUltimate) this.renderUltimateFrame(ctx, player, width, height);
     if (DEBUG) this.renderDebug(ctx, game);
@@ -26,6 +29,21 @@ class HUD {
     ctx.font = "700 14px Lucida Console, monospace";
     ctx.textAlign = "center";
     ctx.fillText(`娱乐模式 第 ${game.funWave} 波`, width / 2, 52);
+    ctx.restore();
+  }
+
+  renderTutorialParryGuide(ctx, width) {
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = CONFIG.palette.gold;
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = CONFIG.palette.gold;
+    ctx.font = "700 21px Lucida Console, monospace";
+    ctx.fillText("短按（回响）L：回响弹反    长按（回响）L：举盾反射", width / 2, 144);
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = CONFIG.palette.echo;
+    ctx.font = "700 14px " + getComputedStyle(document.documentElement).getPropertyValue('--font-family-system');
+    ctx.fillText("短按适合抓近战红光；长按适合挡住攻击并反射远程弹幕", width / 2, 168);
     ctx.restore();
   }
 
